@@ -1,0 +1,52 @@
+---
+
+- name: PostgreSQL | Stop any running PostgreSQL
+  service: name="{{ postgresql_service_name }}" state=stopped
+
+- name: PostgreSQL | Drop the data directory | RedHat
+  file:
+    path: "{{ postgresql_data_directory }}"
+    state: absent
+  register: pgdata_dir_remove
+  when: ansible_os_family == "RedHat"
+
+- name: PostgreSQL | Drop the cluster | Debian
+  command: pg_dropcluster "{{ postgresql_version }}" "{{ postgresql_cluster_name }}"
+  when: ansible_os_family == "Debian"
+
+- name: PostgreSQL | Make sure the data directory exists
+  file:
+    path: "{{postgresql_data_directory}}"
+    owner: "{{ postgresql_service_user }}"
+    group: "{{ postgresql_service_group }}"
+    state: directory
+    mode: 0700
+  register: pgdata_dir_exist
+
+- name: PostgreSQL | Ensure the locale is generated | RedHat
+  command: >
+    localedef -c -i {{ postgresql_locale_parts[0] }} -f {{ postgresql_locale_parts[1] }}
+    {{ postgresql_locale }}
+  changed_when: false
+  when: ansible_os_family == "RedHat"
+
+- name: PostgreSQL | Ensure the locale is generated | Debian
+  locale_gen: name="{{ postgresql_locale }}" state=present
+  when: ansible_os_family == "Debian"
+
+- name: PostgreSQL | Initialize the database | RedHat
+  command: >
+    {{ postgresql_bin_directory }}/initdb -D {{ postgresql_data_directory }}
+    --locale={{ postgresql_locale }} --encoding={{ postgresql_encoding }}
+  when: ansible_os_family == "RedHat"
+
+- name: PostgreSQL | Create a new cluster | Debian
+  shell: >
+    pg_createcluster --locale {{ postgresql_locale }}
+    -e {{ postgresql_encoding }} -d {{ postgresql_data_directory }}
+    {{ postgresql_version }} {{ postgresql_cluster_name }}
+  when: ansible_os_family == "Debian"
+
+- name: PostgreSQL | Start PostgreSQL again
+  service: name="{{ postgresql_service_name }}" state=started
+  
