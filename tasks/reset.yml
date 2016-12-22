@@ -1,5 +1,7 @@
 ---
 
+# FIXME -- might have to add some 'become' statements all over this...
+
 - name: PostgreSQL | Stop any running PostgreSQL
   service: name="{{ postgresql_service_name }}" state=stopped
 
