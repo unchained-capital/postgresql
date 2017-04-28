@@ -8,6 +8,16 @@
     mode: 0750
     state: directory
 
+- name: PostgreSQL | Update configuration - pt. 0 (pg_ident.conf)
+  template:
+    src: pg_ident.conf.j2
+    dest: "{{postgresql_conf_directory}}/pg_ident.conf"
+    owner: "{{ postgresql_service_user }}"
+    group: "{{ postgresql_service_group }}"
+    mode: 0640
+  notify:
+    - restart postgresql
+
 - name: PostgreSQL | Update configuration - pt. 1 (pg_hba.conf)
   template:
     src: pg_hba.conf.j2
@@ -84,3 +94,8 @@
   when: ansible_os_family == "RedHat"
   notify:
     - restart postgresql
+
+- name: restart postgresql
+  service:
+    name: "{{ postgresql_service_name }}"
+    state: restarted

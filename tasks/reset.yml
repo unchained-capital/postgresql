@@ -16,7 +16,7 @@
   command: pg_dropcluster "{{ postgresql_version }}" "{{ postgresql_cluster_name }}"
   when: ansible_os_family == "Debian"
 
-- name: PostgreSQL | Make sure the data directory exists
+- name: PostgreSQL | Make sure the data directory "{{postgresql_data_directory}}" exists
   file:
     path: "{{postgresql_data_directory}}"
     owner: "{{ postgresql_service_user }}"
