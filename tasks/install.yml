@@ -54,3 +54,13 @@
     cache_valid_time: "{{apt_cache_valid_time | default (3600)}}"
   environment: "{{postgresql_env}}"
   when: postgresql_pgtune
+
+- name: PostgreSQL | Make sure the data directory "{{postgresql_data_directory}}" exists
+  file:
+    path: "{{postgresql_data_directory}}"
+    owner: "{{ postgresql_service_user }}"
+    group: "{{ postgresql_service_group }}"
+    state: directory
+    mode: 0700
+  register: pgdata_dir_exist
+
